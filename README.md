@@ -4,9 +4,30 @@
 
 **DevCalc** es una colección de calculadoras y herramientas para desarrolladores, diseñada para ser rápida, intuitiva y estéticamente agradable. Incluye utilidades esenciales como conversores de bases numéricas, formateadores de JSON, generadores de hash y mucho más.
 
-Visita [DevCalc](https://dev-calc-dark.vercel.app/) no se necesita login y es totalmente Freemium.
+[Ver Demo en Vivo](https://devcalc.vercel.app/) (Enlace de ejemplo)
 
 ---
+
+## 📸 Capturas de Pantalla
+
+<table>
+  <tr>
+    <td align="center"><strong>Página de Bienvenida</strong></td>
+    <td align="center"><strong>Conversor de Bases</strong></td>
+  </tr>
+  <tr>
+    <td><img src="https://storage.googleapis.com/fpl-prompt-gallery-prod/user_content/2024-07-25/1721950481_0.png" alt="Página de Bienvenida de DevCalc"></td>
+    <td><img src="https://storage.googleapis.com/fpl-prompt-gallery-prod/user_content/2024-07-25/1721950481_1.png" alt="Herramienta de Conversión de Bases"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Conversor de Tiempo</strong></td>
+    <td align="center"><strong>Generador de Hash</strong></td>
+  </tr>
+  <tr>
+    <td><img src="https://storage.googleapis.com/fpl-prompt-gallery-prod/user_content/2024-07-25/1721950481_2.png" alt="Herramienta de Conversión de Tiempo"></td>
+    <td><img src="https://storage.googleapis.com/fpl-prompt-gallery-prod/user_content/2024-07-25/1721950481_3.png" alt="Herramienta de Generación de Hash"></td>
+  </tr>
+</table>
 
 ## ✨ Características
 
