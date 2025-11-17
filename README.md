@@ -16,16 +16,16 @@
     <td align="center"><strong>Conversor de Bases</strong></td>
   </tr>
   <tr>
-    <td><img src="https://storage.googleapis.com/fpl-prompt-gallery-prod/user_content/2024-07-25/1721950481_0.png" alt="Página de Bienvenida de DevCalc"></td>
-    <td><img src="https://storage.googleapis.com/fpl-prompt-gallery-prod/user_content/2024-07-25/1721950481_1.png" alt="Herramienta de Conversión de Bases"></td>
+    <td><img src="docs/images/welcome-page.png" alt="Página de Bienvenida de DevCalc"></td>
+    <td><img src="docs/images/base-converter.png" alt="Herramienta de Conversión de Bases"></td>
   </tr>
   <tr>
     <td align="center"><strong>Conversor de Tiempo</strong></td>
     <td align="center"><strong>Generador de Hash</strong></td>
   </tr>
   <tr>
-    <td><img src="https://storage.googleapis.com/fpl-prompt-gallery-prod/user_content/2024-07-25/1721950481_2.png" alt="Herramienta de Conversión de Tiempo"></td>
-    <td><img src="https://storage.googleapis.com/fpl-prompt-gallery-prod/user_content/2024-07-25/1721950481_3.png" alt="Herramienta de Generación de Hash"></td>
+    <td><img src="docs/images/time-converter.png" alt="Herramienta de Conversión de Tiempo"></td>
+    <td><img src="docs/images/hash-generator.png" alt="Herramienta de Generación de Hash"></td>
   </tr>
 </table>
 
