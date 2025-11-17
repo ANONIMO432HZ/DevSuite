@@ -21,7 +21,7 @@
 *   ✅ **Tiempo Unix:** Convierte timestamps de Unix a fechas legibles (GMT y local) y viceversa. Permite seleccionar fechas y obtener el timestamp correspondiente.
 *   ✅ **Codificador URL:** Codifica y decodifica texto para que sea seguro de usar en URLs (`encodeURIComponent` / `decodeURIComponent`).
 *   ✅ **Formateador JSON:** Valida, formatea (pretty-print) y minifica datos JSON. Muestra errores detallados con número de línea y columna.
-*   ✅ **Generador de Hash:** Calcula hashes (MD5, SHA-1, SHA-256, SHA-512) para entradas de texto o archivos locales de forma segura en el navegador.
+*   ✅ **Generador de Hash:** Calcula hashes (MD5, SHA-1, SHA-26, SHA-512) para entradas de texto o archivos locales de forma segura en el navegador.
 *   ✅ **Generador UUID:** Crea identificadores únicos universales (UUIDs) en sus versiones v1 (basado en tiempo) y v4 (aleatorio).
 
 ## 🛠️ Stack Tecnológico
@@ -72,9 +72,9 @@ Para crear una versión optimizada para producción, utiliza el siguiente comand
 npm run build
 ```
 
-Este comando utiliza `esbuild` para transpilar el código TypeScript/JSX, empaquetarlo en un único archivo JavaScript (`dist/bundle.js`) y minificarlo para obtener el mejor rendimiento.
+Este comando utiliza `esbuild` para transpilar el código TypeScript/JSX, empaquetarlo en un único archivo JavaScript (`public/dist/bundle.js`) y minificarlo para obtener el mejor rendimiento.
 
-El resultado es un conjunto de archivos estáticos en el directorio raíz que se pueden desplegar en cualquier servicio de hosting.
+El resultado es un conjunto de archivos estáticos en el directorio `public` que se pueden desplegar en cualquier servicio de hosting.
 
 ---
 
@@ -87,7 +87,7 @@ DevCalc está diseñado para ser desplegado fácilmente como un sitio estático.
 1.  Haz un fork de este repositorio en tu cuenta de GitHub.
 2.  Ve a tu [Dashboard de Vercel](https://vercel.com/dashboard) y haz clic en "Add New... -> Project".
 3.  Importa el repositorio que acabas de "forkear".
-4.  Vercel detectará que es un proyecto estático y configurará todo automáticamente. No necesitas cambiar ninguna configuración.
+4.  Vercel detectará la configuración del proyecto y la compilará automáticamente. Con los cambios recientes, no deberías necesitar cambiar ninguna configuración.
 5.  Haz clic en "Deploy". ¡Y listo! Tu aplicación estará en línea en segundos.
 
 ### Alternativas
@@ -96,15 +96,12 @@ DevCalc está diseñado para ser desplegado fácilmente como un sitio estático.
 
 El proceso es muy similar a Vercel. Puedes conectar tu repositorio de GitHub y Netlify se encargará del resto.
 -   **Build Command:** `npm run build`
--   **Publish directory:** `.` (o el directorio raíz, ya que `index.html` está ahí)
+-   **Publish directory:** `public`
 
 #### Hosting Estático (GitHub Pages, AWS S3, etc.)
 
 1.  Ejecuta el comando `npm run build` localmente.
-2.  Sube los siguientes archivos a tu proveedor de hosting:
-    -   `index.html`
-    -   `dist/bundle.js`
-    -   Cualquier otro activo estático (aunque este proyecto no tiene más).
+2.  Sube el contenido del directorio `public` a tu proveedor de hosting.
 
 Asegúrate de que tu servidor esté configurado para servir `index.html` como la página de entrada.
 

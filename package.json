@@ -5,7 +5,7 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "dev": "esbuild index.tsx --bundle --outfile=dist/bundle.js --servedir=. --jsx=automatic --sourcemap",
-    "build": "esbuild index.tsx --bundle --outfile=dist/bundle.js --minify --jsx=automatic"
+    "build": "node -e \"const fs = require('fs'); if (fs.existsSync('public')) fs.rmSync('public', { recursive: true, force: true }); fs.mkdirSync('public/dist', { recursive: true }); fs.copyFileSync('index.html', 'public/index.html');\" && esbuild index.tsx --bundle --outfile=public/dist/bundle.js --minify --jsx=automatic"
   },
   "dependencies": {
     "crypto-js": "^4.2.0",
