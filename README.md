@@ -4,7 +4,7 @@
 
 **DevCalc** es una colección de calculadoras y herramientas para desarrolladores, diseñada para ser rápida, intuitiva y estéticamente agradable. Incluye utilidades esenciales como conversores de bases numéricas, formateadores de JSON, generadores de hash y mucho más.
 
-[Visite DevCalc](https://devcalc-flame.vercel.app/) no se necesita login y es totalmete freemium.
+Visite [DevCalc](https://devcalc-flame.vercel.app/) no se necesita login y es totalmente freemium.
 
 ---
 
