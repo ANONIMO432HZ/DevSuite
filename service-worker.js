@@ -1,30 +1,29 @@
-const CACHE_NAME = 'devsuite-v3';
+const CACHE_NAME = 'devsuite-v4';
+// IMPORTANTE: Solo cacheamos archivos locales. 
+// Las CDNs externas (Tailwind, React) provocan errores CORS que rompen la instalación de la PWA.
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/dist/bundle.js',
   '/manifest.json',
-  'https://cdn.tailwindcss.com',
-  'https://aistudiocdn.com/react@^19.2.0',
-  'https://aistudiocdn.com/react-dom@^19.2.0/',
-  'https://aistudiocdn.com/react@^19.2.0/',
-  'https://aistudiocdn.com/crypto-js@^4.2.0',
-  'https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js',
-  'https://cdn.jsdelivr.net/npm/smol-toml@1.3.1/dist/smol-toml.umd.js'
+  '/icons/icon-32.png',
+  '/icons/icon-128.png',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png'
 ];
 
-// Instalación: Cachear recursos estáticos
+// Instalación: Cachear recursos estáticos locales
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Cacheando archivos estáticos v3');
+      console.log('[Service Worker] Cacheando archivos locales v4');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
   self.skipWaiting();
 });
 
-// Activación: Limpiar caches antiguos (Esto borra la v1/v2 y fuerza la carga de v3)
+// Activación: Limpiar caches antiguos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -41,30 +40,28 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: Estrategia Stale-While-Revalidate
+// Fetch: Estrategia Network First con fallback a Cache
+// Usamos Network First para asegurar que las CDNs carguen si hay internet
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) return;
+  // Solo interceptamos peticiones GET
+  if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic' && networkResponse.type !== 'cors') {
-          return networkResponse;
-        }
-
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
+    fetch(event.request)
+      .then((networkResponse) => {
+        // Si la red responde bien, devolvemos eso
+        // Opcional: Podríamos cachear dinámicamente aquí, pero para CDNs opacas es riesgoso
         return networkResponse;
-      }).catch(() => {
-         console.log('[Service Worker] Fallo de red y no está en caché:', event.request.url);
-      });
-    })
+      })
+      .catch(() => {
+        // Si la red falla (Offline), buscamos en caché
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // Si no está en caché y no hay red, no podemos hacer mucho más por ahora
+          console.log('[Service Worker] Recurso no disponible offline:', event.request.url);
+        });
+      })
   );
 });
