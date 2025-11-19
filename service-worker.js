@@ -1,4 +1,4 @@
-const CACHE_NAME = 'devsuite-v2';
+const CACHE_NAME = 'devsuite-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -17,14 +17,14 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Cacheando archivos estáticos v2');
+      console.log('[Service Worker] Cacheando archivos estáticos v3');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
   self.skipWaiting();
 });
 
-// Activación: Limpiar caches antiguos (Esto borra la v1 y fuerza la carga de v2)
+// Activación: Limpiar caches antiguos (Esto borra la v1/v2 y fuerza la carga de v3)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
