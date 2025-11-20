@@ -1,20 +1,8 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import TextareaGroup from './TextareaGroup';
-
-// Declaración de tipos para las librerías globales cargadas en index.html
-declare global {
-    interface Window {
-        jsyaml: {
-            load: (input: string) => any;
-            dump: (obj: any, options?: any) => string;
-        };
-        smolToml: {
-            parse: (input: string) => any;
-            stringify: (obj: any) => string;
-        };
-    }
-}
+import * as yaml from 'js-yaml';
+import { parse as parseToml, stringify as stringifyToml } from 'smol-toml';
 
 type DataFormat = 'json' | 'yaml' | 'toml';
 
@@ -141,22 +129,18 @@ const parseInput = (input: string): { data: any, format: DataFormat } => {
     } catch (e) {}
 
     // Intentar YAML (js-yaml)
-    if (window.jsyaml) {
-        try {
-            const data = window.jsyaml.load(input);
-            if (typeof data === 'object' && data !== null) {
-                return { data, format: 'yaml' };
-            }
-        } catch (e) {}
-    }
+    try {
+        const data = yaml.load(input);
+        if (typeof data === 'object' && data !== null) {
+            return { data, format: 'yaml' };
+        }
+    } catch (e) {}
 
     // Intentar TOML (smol-toml)
-    if (window.smolToml) {
-        try {
-            const data = window.smolToml.parse(input);
-            return { data, format: 'toml' };
-        } catch (e) {}
-    }
+    try {
+        const data = parseToml(input);
+        return { data, format: 'toml' };
+    } catch (e) {}
 
     throw new Error("Formato no reconocido o inválido (esperado JSON, YAML o TOML).");
 };
@@ -166,13 +150,10 @@ const stringifyData = (data: any, format: DataFormat): string => {
         case 'json':
             return JSON.stringify(data, null, 2);
         case 'yaml':
-            if (!window.jsyaml) return "Librería YAML no cargada.";
-            return window.jsyaml.dump(data);
+            return yaml.dump(data);
         case 'toml':
-            if (!window.smolToml) return "Librería TOML no cargada.";
-            // TOML stringify puede fallar si hay nulls o estructuras no soportadas
             try {
-                return window.smolToml.stringify(data);
+                return stringifyToml(data);
             } catch (e) {
                 throw new Error("Error al generar TOML: " + (e as Error).message);
             }
@@ -443,6 +424,7 @@ const JSONConverter: React.FC = () => {
         </div>
       </div>
 
+      {/* Editor */}
       <div className="relative">
         {detectedFormat && (
             <div className="absolute top-0 right-0 transform -translate-y-full mb-1 mr-1">
