@@ -20,18 +20,3 @@ export interface HistoryItem {
   input: string;
   output: string;
 }
-
-export interface GoogleUser {
-  name: string;
-  email: string;
-  picture: string;
-}
-
-export interface AuthContextType {
-  user: GoogleUser | null;
-  isLoading: boolean;
-  isDriveReady: boolean;
-  login: () => void;
-  logout: () => void;
-  uploadFileToDrive: (content: string, filename: string, mimeType: string) => Promise<void>;
-}

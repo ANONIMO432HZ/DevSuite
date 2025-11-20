@@ -1,22 +1,35 @@
-const CACHE_NAME = 'devsuite-v9';
-// IMPORTANTE: Solo cacheamos archivos locales. 
-// Ahora incluimos styles.css compilado en lugar de depender de CDNs externos.
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'devsuite-v10';
+
+// Archivos CRÍTICOS: Si alguno de estos falla, la app no funciona offline.
+const CRITICAL_ASSETS = [
   '/',
   '/index.html',
   '/dist/bundle.js',
   '/dist/styles.css',
-  '/manifest.json',
+  '/manifest.json'
+];
+
+// Archivos OPCIONALES: Intentaremos cachearlos, pero si fallan (404), no romperemos la app.
+const OPTIONAL_ASSETS = [
   '/icons/icon-192.png',
   '/icons/icon-512.png'
 ];
 
-// Instalación: Cachear recursos estáticos locales
+// Instalación: Cachear recursos críticos estrictamente y opcionales suavemente
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Cacheando archivos locales v9');
-      return cache.addAll(ASSETS_TO_CACHE);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      console.log('[Service Worker] Cacheando archivos críticos v10');
+      
+      // 1. Cachear lo crítico (falla si hay error)
+      await cache.addAll(CRITICAL_ASSETS);
+
+      // 2. Intentar cachear lo opcional (sin romper si falla)
+      try {
+        await cache.addAll(OPTIONAL_ASSETS);
+      } catch (err) {
+        console.warn('[Service Worker] No se pudieron cachear algunos recursos opcionales (probablemente iconos faltantes):', err);
+      }
     })
   );
   self.skipWaiting();
@@ -40,9 +53,7 @@ self.addEventListener('activate', (event) => {
 });
 
 // Fetch: Estrategia Network First con fallback a Cache
-// Usamos Network First para asegurar que las actualizaciones lleguen rápido
 self.addEventListener('fetch', (event) => {
-  // Solo interceptamos peticiones GET
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
@@ -55,6 +66,7 @@ self.addEventListener('fetch', (event) => {
           if (cachedResponse) {
             return cachedResponse;
           }
+          // Si no está en caché y no hay red, retornamos undefined (el navegador mostrará error de conexión standard)
           console.log('[Service Worker] Recurso no disponible offline:', event.request.url);
         });
       })
