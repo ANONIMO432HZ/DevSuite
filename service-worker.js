@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'devsuite-v18';
+const CACHE_NAME = 'devsuite-v19';
 
 const CRITICAL_ASSETS = [
   '/',

@@ -1,8 +1,6 @@
 
 # DevSuite: Herramientas Digitales Integrales
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FANONIMO432HZ%2Fdevsuite)
-
 ![PWA Ready](https://img.shields.io/badge/PWA-Ready-purple.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React](https://img.shields.io/badge/React-18-cyan.svg)
