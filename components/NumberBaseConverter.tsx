@@ -3,61 +3,54 @@ import React, { useState, useCallback } from 'react';
 import InputGroup from './InputGroup';
 import TextareaGroup from './TextareaGroup';
 import { useHistory } from '../contexts/HistoryContext';
-
-// Tipos y constantes para el conversor de bytes
-const BYTE_UNITS = {
-  bits: { name: 'Bits', multiplier: 0.125 },
-  bytes: { name: 'Bytes', multiplier: 1 },
-  kb: { name: 'Kilobytes (KB)', multiplier: 1024 },
-  mb: { name: 'Megabytes (MB)', multiplier: 1024 ** 2 },
-  gb: { name: 'Gigabytes (GB)', multiplier: 1024 ** 3 },
-  tb: { name: 'Terabytes (TB)', multiplier: 1024 ** 4 },
-  pb: { name: 'Petabytes (PB)', multiplier: 1024 ** 5 },
-  eb: { name: 'Exabytes (EB)', multiplier: 1024 ** 6 },
-};
-
-type ByteUnit = keyof typeof BYTE_UNITS;
-const initialByteValues = Object.keys(BYTE_UNITS).reduce((acc, key) => ({ ...acc, [key]: '' }), {} as Record<ByteUnit, string>);
-
+import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
+import TextTools from './TextTools';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const NumberBaseConverter: React.FC = () => {
+  const { t } = useLanguage();
+  // --- Estados de Modo Texto/Bytes ---
   const [text, setText] = useState('');
   const [base64Text, setBase64Text] = useState('');
   const [hexBytes, setHexBytes] = useState('');
+  const [binaryStream, setBinaryStream] = useState(''); // Estado dedicado para la vista de Bytes
   
-  const [textError, setTextError] = useState<{ field: 'base64' | 'hex' | null; message: string | null }>({ field: null, message: null });
+  const [textError, setTextError] = useState<{ field: 'base64' | 'hex' | 'binary' | null; message: string | null }>({ field: null, message: null });
   const [numericError, setNumericError] = useState<{ field: 'decimal' | 'binary' | 'hex' | null; message: string | null }>({ field: null, message: null });
   
+  // --- Estados de Modo Numérico ---
   const [decimal, setDecimal] = useState('');
-  const [binary, setBinary] = useState('');
+  const [binary, setBinary] = useState(''); // Estado dedicado para el input numérico
   const [hex, setHex] = useState('');
-  const [ascii, setAscii] = useState('');
 
-  const [byteValues, setByteValues] = useState(initialByteValues);
   const { addToHistory } = useHistory();
 
-  const isTextMode = !!text || !!base64Text || !!hexBytes;
+  // Protección contra pérdida de datos
+  useUnsavedChanges(text.length > 0 || base64Text.length > 0 || hexBytes.length > 0 || decimal.length > 0);
+
+  // Detectar si estamos en modo texto basado en si hay contenido en los campos de arriba
+  const isTextMode = !!text || !!base64Text || !!hexBytes || !!binaryStream;
   
-  const updateAllFromBytes = useCallback((bytes: Uint8Array | null, sourceField: 'text' | 'base64' | 'hex') => {
+  const updateAllFromBytes = useCallback((bytes: Uint8Array | null, sourceField: 'text' | 'base64' | 'hex' | 'binaryStream') => {
     setTextError({ field: null, message: null });
+    
     if (!bytes || bytes.length === 0) {
       if (sourceField !== 'text') setText('');
       if (sourceField !== 'base64') setBase64Text('');
       if (sourceField !== 'hex') setHexBytes('');
+      if (sourceField !== 'binaryStream') setBinaryStream('');
       setDecimal('');
       setBinary('');
       setHex('');
-      setAscii('');
       return;
     }
 
-    // Actualizar campos de texto
     if (sourceField !== 'text') {
       try {
         const decodedString = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
         setText(decodedString);
       } catch (e) {
-        setText('Error: Bytes no válidos para UTF-8');
+        setText(''); 
       }
     }
     if (sourceField !== 'base64') {
@@ -68,20 +61,36 @@ const NumberBaseConverter: React.FC = () => {
       const hexString = Array.from(bytes).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
       setHexBytes(hexString);
     }
+    if (sourceField !== 'binaryStream') {
+        const binString = Array.from(bytes).map(b => b.toString(2).padStart(8, '0')).join(' ');
+        setBinaryStream(binString);
+    }
 
-    // Actualizar representaciones de bytes
-    setDecimal(Array.from(bytes).map(b => b.toString(10)).join(' '));
-    setBinary(Array.from(bytes).map(b => b.toString(2).padStart(8, '0')).join(' '));
-    setHex(Array.from(bytes).map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' '));
-    setAscii(Array.from(bytes).map(b => (b >= 32 && b < 127) ? String.fromCharCode(b) : '.').join(' '));
+    try {
+        const hexStr = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        if (hexStr) {
+            const num = BigInt('0x' + hexStr);
+            setDecimal(num.toString(10));
+            setBinary(num.toString(2));
+            setHex(num.toString(16).toUpperCase());
+        }
+    } catch (e) {
+        setDecimal('...');
+        setBinary('...');
+        setHex('...');
+    }
+
   }, []);
 
   const clearAllText = () => {
     setText('');
     setBase64Text('');
     setHexBytes('');
+    setBinaryStream('');
     setTextError({ field: null, message: null });
-    updateAllFromBytes(null, 'text');
+    setDecimal('');
+    setBinary('');
+    setHex('');
   };
 
   const clearAll = useCallback(() => {
@@ -89,11 +98,11 @@ const NumberBaseConverter: React.FC = () => {
     setDecimal('');
     setBinary('');
     setHex('');
-    setAscii('');
     setNumericError({ field: null, message: null });
-    setByteValues(initialByteValues);
-  }, [updateAllFromBytes]);
+  }, []);
   
+  // --- Handlers ---
+  // (Mantienen la lógica igual, solo renderizado cambia)
   const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setText(value);
@@ -103,45 +112,44 @@ const NumberBaseConverter: React.FC = () => {
 
   const handleBase64Change = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value.trim();
-    setBase64Text(e.target.value);
-    if (!value) {
-      clearAllText();
-      return;
-    }
+    setBase64Text(e.target.value); 
+    if (!value) { clearAllText(); return; }
     try {
-      // Basic validation before atob
-      if (!/^[A-Za-z0-9+/]*=?=?$/.test(value) || value.length % 4 !== 0) {
-        throw new Error("Invalid Base64 characters or padding");
-      }
+      if (!/^[A-Za-z0-9+/]*=?=?$/.test(value) || value.length % 4 !== 0) throw new Error("Invalid");
       const binaryString = atob(value);
       const bytes = new Uint8Array(binaryString.length).map((_, i) => binaryString.charCodeAt(i));
       updateAllFromBytes(bytes, 'base64');
-    } catch (err) {
-      setTextError({ field: 'base64', message: 'Cadena Base64 inválida. Compruebe los caracteres y el relleno.' });
-    }
+    } catch (err) { setTextError({ field: 'base64', message: 'Invalid Base64' }); }
   }, [updateAllFromBytes]);
 
   const handleHexBytesChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value.replace(/\s+/g, '');
-    setHexBytes(e.target.value);
-    if (!value) {
-      clearAllText();
-      return;
-    }
-    if (value.length % 2 !== 0 || !/^[0-9a-fA-F]*$/.test(value)) {
-      setTextError({ field: 'hex', message: 'Cadena Hex inválida. Debe tener una longitud par y contener solo 0-9, A-F.' });
-      return;
-    }
+    const rawValue = e.target.value;
+    setHexBytes(rawValue);
+    const value = rawValue.replace(/\s+/g, '');
+    if (!value) { clearAllText(); return; }
+    if (!/^[0-9a-fA-F]*$/.test(value)) { setTextError({ field: 'hex', message: 'Hex only' }); return; }
     try {
       const bytes = new Uint8Array(value.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
       updateAllFromBytes(bytes, 'hex');
-    } catch (err) {
-      setTextError({ field: 'hex', message: 'Error al procesar la cadena hexadecimal.' });
-    }
+    } catch (err) { setTextError({ field: 'hex', message: 'Error' }); }
+  }, [updateAllFromBytes]);
+
+  const handleBinaryStreamChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const rawValue = e.target.value;
+    setBinaryStream(rawValue);
+    const cleanValue = rawValue.replace(/\s+/g, '');
+    if (!cleanValue) { clearAllText(); return; }
+    if (!/^[01]*$/.test(cleanValue)) { setTextError({ field: 'binary', message: '0/1 only' }); return; }
+    try {
+      const bytes = new Uint8Array(cleanValue.match(/.{1,8}/g)!.map(byte => parseInt(byte, 2)));
+      updateAllFromBytes(bytes, 'binaryStream');
+    } catch (err) { setTextError({ field: 'binary', message: 'Error' }); }
   }, [updateAllFromBytes]);
   
   const handleNumericWrapper = (handler: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isTextMode) clearAllText();
+    if (isTextMode) {
+        setText(''); setBase64Text(''); setHexBytes(''); setBinaryStream(''); setTextError({ field: null, message: null });
+    }
     setNumericError({ field: null, message: null });
     handler(e.target.value);
   };
@@ -149,145 +157,84 @@ const NumberBaseConverter: React.FC = () => {
   const handleDecimalChange = useCallback((value: string) => {
     const trimmedValue = value.trim();
     setDecimal(value);
-    setAscii('');
-    if (trimmedValue === '') {
-      setBinary(''); setHex(''); return;
-    }
-    if (!/^\d+$/.test(trimmedValue)) {
-      setNumericError({ field: 'decimal', message: 'Solo se admiten números (0-9).' });
-      setBinary(''); setHex('');
-      return;
-    }
-    try { const num = BigInt(trimmedValue); setBinary(num.toString(2)); setHex(num.toString(16).toUpperCase()); } catch (e) {
-      setNumericError({ field: 'decimal', message: 'El número es demasiado grande.' });
-    }
+    if (trimmedValue === '') { setBinary(''); setHex(''); return; }
+    if (!/^\d+$/.test(trimmedValue)) { setNumericError({ field: 'decimal', message: 'Num only' }); return; }
+    try { const num = BigInt(trimmedValue); setBinary(num.toString(2)); setHex(num.toString(16).toUpperCase()); } catch (e) { setNumericError({ field: 'decimal', message: 'Too big' }); }
   }, []);
 
   const handleBinaryChange = useCallback((value: string) => {
     const trimmedValue = value.trim();
     setBinary(value);
-    setAscii('');
-    if (trimmedValue === '') {
-      setDecimal(''); setHex(''); return;
-    }
-    if (!/^[01]+$/.test(trimmedValue)) {
-      setNumericError({ field: 'binary', message: 'Solo se admiten números binarios (0-1).' });
-      setDecimal(''); setHex('');
-      return;
-    }
-    try { const num = BigInt(`0b${trimmedValue}`); setDecimal(num.toString(10)); setHex(num.toString(16).toUpperCase()); } catch (e) {
-      setNumericError({ field: 'binary', message: 'El número es demasiado grande.' });
-    }
+    if (trimmedValue === '') { setDecimal(''); setHex(''); return; }
+    if (!/^[01]+$/.test(trimmedValue)) { setNumericError({ field: 'binary', message: '0/1 only' }); return; }
+    try { const num = BigInt(`0b${trimmedValue}`); setDecimal(num.toString(10)); setHex(num.toString(16).toUpperCase()); } catch (e) { setNumericError({ field: 'binary', message: 'Too big' }); }
   }, []);
 
   const handleHexChange = useCallback((value: string) => {
     const trimmedValue = value.trim();
     setHex(value);
-    setAscii('');
-    if (trimmedValue === '') {
-      setDecimal(''); setBinary(''); return;
-    }
-    if (!/^[0-9a-fA-F]+$/.test(trimmedValue)) {
-      setNumericError({ field: 'hex', message: 'Solo se admiten caracteres hexadecimales (0-9, A-F).' });
-      setDecimal(''); setBinary('');
-      return;
-    }
-    try { const num = BigInt(`0x${trimmedValue}`); setDecimal(num.toString(10)); setBinary(num.toString(2)); } catch (e) {
-      setNumericError({ field: 'hex', message: 'El número es demasiado grande.' });
-    }
-  }, []);
-
-  const formatNumber = (num: number): string => {
-    if (num === 0) return '0';
-    return parseFloat(num.toPrecision(15)).toString();
-  };
-
-  const handleByteValueChange = useCallback((unit: ByteUnit, e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    if (inputValue.trim() === '') { setByteValues(initialByteValues); return; }
-    if (!/^-?\d*\.?\d*$/.test(inputValue)) return;
-    const numericValue = parseFloat(inputValue);
-    if (isNaN(numericValue)) { setByteValues(prev => ({ ...prev, [unit]: inputValue })); return; }
-    const bytes = numericValue * BYTE_UNITS[unit].multiplier;
-    const newValues = {} as Record<ByteUnit, string>;
-    for (const key in BYTE_UNITS) {
-      const u = key as ByteUnit;
-      newValues[u] = formatNumber(bytes / BYTE_UNITS[u].multiplier);
-    }
-    newValues[unit] = inputValue;
-    setByteValues(newValues);
+    if (trimmedValue === '') { setDecimal(''); setBinary(''); return; }
+    if (!/^[0-9a-fA-F]+$/.test(trimmedValue)) { setNumericError({ field: 'hex', message: 'Hex only' }); return; }
+    try { const num = BigInt(`0x${trimmedValue}`); setDecimal(num.toString(10)); setBinary(num.toString(2)); } catch (e) { setNumericError({ field: 'hex', message: 'Too big' }); }
   }, []);
 
   const saveToHistory = () => {
     if (isTextMode) {
         addToHistory({
-            tool: 'Conversor de Bases (Texto)',
-            details: 'Conversión de Texto/Bytes',
-            input: text || base64Text.substring(0, 20) + '...',
-            output: `Hex: ${hexBytes.substring(0, 20)}... | B64: ${base64Text.substring(0, 20)}...`
+            tool: t('menu.numberBase'),
+            details: 'Text/Bytes',
+            input: text || base64Text,
+            output: `Hex: ${hexBytes} | Bin: ${binaryStream}`
         });
     } else if (decimal || binary || hex) {
          addToHistory({
-            tool: 'Conversor de Bases (Num)',
-            details: 'Conversión Numérica',
+            tool: t('menu.numberBase'),
+            details: 'Numeric',
             input: decimal ? `Dec: ${decimal}` : (binary ? `Bin: ${binary}` : `Hex: ${hex}`),
             output: `Dec: ${decimal} | Hex: ${hex} | Bin: ${binary}`
         });
-    } else {
-        // Check byte units
-        const filled = Object.entries(byteValues).find(([_, v]) => v !== '');
-        if (filled) {
-             addToHistory({
-                tool: 'Conversor de Bytes',
-                details: `Unidad base: ${BYTE_UNITS[filled[0] as ByteUnit].name}`,
-                input: `${filled[1]} ${filled[0]}`,
-                output: `Bytes: ${byteValues.bytes} | MB: ${byteValues.mb} | GB: ${byteValues.gb}`
-            });
-        }
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TextareaGroup id="text-input" label="Texto (UTF-8)" value={text} onChange={handleTextChange} placeholder="Escribe texto..." rows={6}/>
-        <TextareaGroup id="base64" label="Base64" value={base64Text} onChange={handleBase64Change} placeholder="Pega Base64..." error={textError.field === 'base64' ? textError.message : null} rows={6}/>
-        <TextareaGroup id="ascii" label="ASCII (Caracteres)" value={ascii} onChange={() => {}} placeholder={isTextMode ? "Representación de bytes" : "N/A"} disabled={true} rows={6}/>
-        <TextareaGroup id="hex-bytes" label="Hexadecimal (Bytes)" value={hexBytes} onChange={handleHexBytesChange} placeholder="Pega bytes en Hex (ej: 48 6F 6C 61)..." error={textError.field === 'hex' ? textError.message : null} rows={6}/>
+        <TextareaGroup id="text-input" label={t('base.label.text')} value={text} onChange={handleTextChange} placeholder={t('base.ph.text')} rows={6}/>
+        <TextareaGroup id="base64" label={t('base.label.base64')} value={base64Text} onChange={handleBase64Change} placeholder={t('base.ph.base64')} error={textError.field === 'base64' ? textError.message : null} rows={6}/>
+        <TextareaGroup id="binary-bytes" label={t('base.label.binaryBytes')} value={binaryStream} onChange={handleBinaryStreamChange} placeholder={t('base.ph.binaryBytes')} error={textError.field === 'binary' ? textError.message : null} rows={6}/>
+        <TextareaGroup id="hex-bytes" label={t('base.label.hexBytes')} value={hexBytes} onChange={handleHexBytesChange} placeholder={t('base.ph.hexBytes')} error={textError.field === 'hex' ? textError.message : null} rows={6}/>
       </div>
       
       <div className="relative flex items-center py-2">
         <div className="flex-grow border-t border-slate-300 dark:border-slate-700"></div>
-        <span className="flex-shrink mx-4 text-slate-400 dark:text-slate-500 text-sm tracking-wider">REPRESENTACIÓN EN BYTES / CONVERSIÓN NUMÉRICA</span>
+        <span className="flex-shrink mx-4 text-slate-400 dark:text-slate-500 text-sm tracking-wider">{t('base.title.numeric')}</span>
         <div className="flex-grow border-t border-slate-300 dark:border-slate-700"></div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <InputGroup id="decimal" label="Decimal" value={decimal} onChange={handleNumericWrapper(handleDecimalChange)} placeholder={isTextMode ? "Representación de bytes" : "Ej: 10"} readOnly={isTextMode} error={numericError.field === 'decimal' ? numericError.message : null} />
-        <InputGroup id="binary" label="Binario" value={binary} onChange={handleNumericWrapper(handleBinaryChange)} placeholder={isTextMode ? "Representación de bytes" : "Ej: 1010"} readOnly={isTextMode} error={numericError.field === 'binary' ? numericError.message : null} />
-        <InputGroup id="hex" label="Hexadecimal" value={hex} onChange={handleNumericWrapper(handleHexChange)} placeholder={isTextMode ? "Representación de bytes" : "Ej: A"} readOnly={isTextMode} error={numericError.field === 'hex' ? numericError.message : null} />
-      </div>
-
-      <div className="relative flex items-center py-2">
-        <div className="flex-grow border-t border-slate-300 dark:border-slate-700"></div>
-        <span className="flex-shrink mx-4 text-slate-400 dark:text-slate-500 text-sm tracking-wider">CONVERSOR DE UNIDADES</span>
-        <div className="flex-grow border-t border-slate-300 dark:border-slate-700"></div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-        {Object.entries(BYTE_UNITS).map(([key, { name }]) => (
-          <InputGroup key={key} id={`byte-${key}`} label={name} value={byteValues[key as ByteUnit]} onChange={(e) => handleByteValueChange(key as ByteUnit, e)} placeholder="0"/>
-        ))}
+        <InputGroup id="decimal" label={t('base.label.decimal')} value={decimal} onChange={handleNumericWrapper(handleDecimalChange)} placeholder="10" readOnly={isTextMode} error={numericError.field === 'decimal' ? numericError.message : null} />
+        <InputGroup id="binary" label={t('base.label.binaryNum')} value={binary} onChange={handleNumericWrapper(handleBinaryChange)} placeholder="1010" readOnly={isTextMode} error={numericError.field === 'binary' ? numericError.message : null} />
+        <InputGroup id="hex" label={t('base.label.hexNum')} value={hex} onChange={handleNumericWrapper(handleHexChange)} placeholder="A" readOnly={isTextMode} error={numericError.field === 'hex' ? numericError.message : null} />
       </div>
 
       <div className="text-right pt-2 flex justify-end gap-3">
-        <button onClick={saveToHistory} className="bg-lime-500 hover:bg-lime-600 dark:bg-lime-600 dark:hover:bg-lime-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200">
-          Guardar
+        <button onClick={saveToHistory} className="bg-accent hover:opacity-90 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200">
+          {t('action.save')}
         </button>
         <button onClick={clearAll} className="bg-slate-200 hover:bg-slate-300 dark:bg-slate-600 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold py-2 px-4 rounded-md transition-colors duration-200">
-          Limpiar Todo
+          {t('action.clearAll')}
         </button>
       </div>
+
+      <div className="mt-8 pt-4">
+          <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-slate-300 dark:border-slate-700"></div>
+              <span className="flex-shrink mx-4 text-slate-400 dark:text-slate-500 text-sm tracking-wider">{t('base.title.encoding')}</span>
+              <div className="flex-grow border-t border-slate-300 dark:border-slate-700"></div>
+          </div>
+          <TextTools />
+      </div>
+
     </div>
   );
 };

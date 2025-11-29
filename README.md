@@ -1,4 +1,7 @@
+
 # DevSuite: Herramientas Digitales Integrales
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FANONIMO432HZ%2Fdevsuite)
 
 ![PWA Ready](https://img.shields.io/badge/PWA-Ready-purple.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -29,45 +32,44 @@ Nunca pierdas un resultado. DevSuite incluye un panel lateral de historial persi
 ## 🛠️ Herramientas Incluidas
 
 ### 1. Conversor Universal
-Unificación de conversores físicos y temporales.
+Unificación de conversores físicos y utilitarios.
 -   **Categorías:** Longitud, Masa/Peso, Volumen, Área, Velocidad y Tiempo.
--   **Reactividad:** Convierte entre todas las unidades simultáneamente (ej. escribe en Metros, obten Pies, Pulgadas y Millas al instante).
+-   **Salud:** **Calculadora IMC** (Índice de Masa Corporal) integrada con estándares OMS y asiáticos.
+-   **Reactividad:** Convierte entre todas las unidades simultáneamente.
 -   **Precisión:** Manejo de notación científica para valores muy grandes o pequeños.
 
-### 2. Conversor de Datos (JSON/YAML/TOML)
+### 2. Asistente IA (Gemini)
+-   **Chat:** Consultas generales de código y tecnología.
+-   **Diagramas:** Generación, corrección y visualización de diagramas **Mermaid**.
+
+### 3. Conversor de Datos (JSON/YAML/TOML)
 -   **Formatos:** Conversión bidireccional entre JSON, YAML y TOML.
 -   **Editor:** Validación de sintaxis en tiempo real.
--   **Utilidades:** Minificado, embellecido (Pretty Print), descodificación de strings JSON escapados.
--   **Archivos:** Importación y exportación de archivos `.json`, `.yaml`, `.toml`.
+-   **Utilidades:** Minificado, embellecido (Pretty Print).
+-   **Archivos:** Importación y exportación de archivos locales.
 
-### 3. Lógica Bitwise
+### 4. Lógica Bitwise
 Visualizador de operaciones a nivel de bits para programación de bajo nivel.
--   **Operaciones:** AND, OR, XOR, NOT, NAND, NOR, XNOR, Shifts (<<, >>, >>>).
--   **Visualización:** Representación binaria de 32 bits desglosada en nibbles.
--   **Entrada:** Soporta Decimal, Hexadecimal (`0x`) y Binario (`0b`).
+-   **Operaciones:** AND, OR, XOR, NOT, NAND, NOR, XNOR, Shifts.
+-   **Visualización:** Representación binaria de 32 bits.
 
-### 4. Paletas y Colores
+### 5. Paletas y Colores
 Suite de diseño para crear esquemas de color.
--   **Generador:** Armonías (Análoga, Monocromática, Complementaria, Triada, etc.).
+-   **Generador:** Armonías (Análoga, Monocromática, etc.).
 -   **Edición:** Sliders visuales RGB y HSL.
--   **Psicología:** Presets de color basados en emociones (Confianza, Energía, Lujo...).
--   **Gradientes:** Generador de código CSS para degradados lineales y radiales.
--   **Exportación:** Copia como Variables CSS o JSON.
+-   **Gradientes:** Generador de código CSS.
 
-### 5. Conversor de Bases Numéricas
+### 6. Conversor de Bases Numéricas
 -   **Formatos:** Decimal, Binario, Hexadecimal.
 -   **Texto/Bytes:** Conversión de Texto UTF-8 a Hex Bytes, Base64 y ASCII.
--   **Unidades Digitales:** Conversor de Bytes a KB, MB, GB, TB, PB.
 
-### 6. Criptografía (Hash)
--   **Algoritmos:** MD5, SHA-1, SHA-256, SHA-512.
--   **Archivos:** Generación de hash para archivos locales (hasta 200MB) sin subirlos a ningún servidor.
--   **Seguridad:** Uso de la Web Crypto API nativa del navegador.
+### 7. Criptografía (Hash)
+-   **Algoritmos:** MD5, SHA-1, SHA-256, SHA-512, BLAKE3.
+-   **Archivos:** Generación de hash para archivos locales sin subirlos a la nube.
 
-### 7. Utilidades Varias
--   **Tiempo Unix:** Timestamp actual, conversor de fechas Local/GMT y fechas relativas.
--   **UUID:** Generador de UUID v4 (Aleatorio) y v1 (Tiempo).
--   **URL Encoder:** Codificación y decodificación segura de URIs.
+### 8. Utilidades de Red y Sistema
+-   **Red:** Mi IP, Ping (simulado vía HTTP), DNS Lookup, Calculadora Subred, Escáner de Puertos.
+-   **Sistema:** User Agent, Tiempo Unix, Generador UUID (v1, v4, v7).
 
 ---
 
@@ -77,7 +79,7 @@ Suite de diseño para crear esquemas de color.
 -   **Lenguaje:** [TypeScript](https://www.typescriptlang.org/)
 -   **Estilos:** [Tailwind CSS](https://tailwindcss.com/)
 -   **Empaquetado:** [Esbuild](https://esbuild.github.io/)
--   **Parsers:** `js-yaml`, `smol-toml`, `crypto-js`.
+-   **AI:** Google Gemini API
 
 ---
 
@@ -104,18 +106,6 @@ Suite de diseño para crear esquemas de color.
     ```bash
     npm run build
     ```
-    Esto generará una carpeta `public/` con todos los archivos estáticos, iconos y el Service Worker listos para desplegar.
-
----
-
-## 🤝 Contribuciones
-
-¡Las contribuciones son bienvenidas!
-1.  Haz un Fork.
-2.  Crea tu rama (`git checkout -b feature/amazing-feature`).
-3.  Haz Commit (`git commit -m 'Add some amazing feature'`).
-4.  Haz Push (`git push origin feature/amazing-feature`).
-5.  Abre un Pull Request.
 
 ---
 

@@ -1,64 +1,58 @@
 <!DOCTYPE html>
-<html lang="es" class=""> <!-- La clase 'dark' se añadirá aquí mediante script -->
+<html lang="es" class="">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DevSuite: Herramientas Digitales Integrales</title>
   
-  <!-- PWA Settings -->
-  <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0f172a">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
   
-  <!-- Iconos -->
-  <!-- Usamos el icono de 192px como favicon general, el navegador lo escala -->
-  <link rel="icon" href="/icons/icon-192.png">
-  <link rel="apple-touch-icon" href="/icons/icon-512.png">
+  <!-- Estilos Compilados: Necesario para Offline Mode y Performance en Producción -->
+  <link href="/styles.css" rel="stylesheet">
 
-  <!-- CSS Compilado (Tailwind) -->
-  <link href="/dist/styles.css" rel="stylesheet">
-
+  <!-- Script inline para evitar Flash of Incorrect Theme (FOUC) -->
   <script>
-    // Se ejecuta antes de que React cargue para prevenir el "flash" del tema incorrecto (FOUC)
-    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+    (function() {
+      // Intentar recuperar el tema o usar oscuro por defecto
+      var storedTheme = localStorage.getItem('theme_mode');
+      var storedAccent = localStorage.getItem('theme_custom_color');
+      
+      // Aplicar clase dark por defecto si no es explícitamente 'light'
+      if (storedTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+
+      // Intentar restaurar color de acento personalizado si existe para evitar salto visual
+      if (storedAccent) {
+         // Función simple para convertir HEX a RGB
+         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(storedAccent);
+         if (result) {
+            var r = parseInt(result[1], 16);
+            var g = parseInt(result[2], 16);
+            var b = parseInt(result[3], 16);
+            document.documentElement.style.setProperty('--color-accent', r + ' ' + g + ' ' + b);
+         }
+      }
+    })();
   </script>
-  <style>
-    /* Barra de scroll personalizada con soporte para modo oscuro */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #f1f5f9; /* slate-100 */
-    }
-    .dark ::-webkit-scrollbar-track {
-        background: #1e293b; /* slate-800 */
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #94a3b8; /* slate-400 */
-      border-radius: 4px;
-    }
-    .dark ::-webkit-scrollbar-thumb {
-        background: #475569; /* slate-600 */
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #64748b; /* slate-500 */
-    }
-  </style>
 <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@noble/hashes/": "https://aistudiocdn.com/@noble/hashes@^2.0.1/",
     "js-yaml": "https://aistudiocdn.com/js-yaml@^4.1.1",
     "smol-toml": "https://aistudiocdn.com/smol-toml@^1.5.2",
-    "crypto-js": "https://aistudiocdn.com/crypto-js@^4.2.0"
+    "crypto-js": "https://aistudiocdn.com/crypto-js@^4.2.0",
+    "mermaid": "https://aistudiocdn.com/mermaid@^11.4.0/dist/mermaid.esm.min.mjs"
   }
 }
 </script>
@@ -66,18 +60,12 @@
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300">
   <div id="root"></div>
   <script src="/dist/bundle.js"></script>
-  
-  <!-- Service Worker Registration -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then(registration => {
-            console.log('SW registrado con éxito:', registration.scope);
-          })
-          .catch(error => {
-            console.log('Fallo al registrar SW:', error);
-          });
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(reg => console.log('SW registered'))
+          .catch(err => console.log('SW registration failed:', err));
       });
     }
   </script>

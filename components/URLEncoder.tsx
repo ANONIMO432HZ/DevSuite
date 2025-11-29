@@ -1,5 +1,7 @@
+
 import React, { useState, useCallback } from 'react';
 import TextareaGroup from './TextareaGroup';
+import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
 
 const ArrowRightIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -11,6 +13,9 @@ const URLEncoder: React.FC = () => {
   const [decoded, setDecoded] = useState('');
   const [encoded, setEncoded] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Protección contra pérdida de datos
+  useUnsavedChanges(decoded.length > 0 || encoded.length > 0);
 
   const clearAll = useCallback(() => {
     setDecoded('');

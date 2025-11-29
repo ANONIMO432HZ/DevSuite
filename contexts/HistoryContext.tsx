@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { HistoryItem } from '../types';
+import { useSettings } from './SettingsContext';
 
 interface HistoryContextType {
   history: HistoryItem[];
@@ -18,6 +19,7 @@ const STORAGE_KEY = 'devsuite_history';
 export const HistoryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const { settings } = useSettings(); // Acceder a la configuración global
 
   // Cargar historial al inicio
   useEffect(() => {
@@ -42,9 +44,10 @@ export const HistoryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       id: crypto.randomUUID(),
       timestamp: Date.now(),
     };
-    setHistory(prev => [newItem, ...prev].slice(0, 50)); // Mantener solo los últimos 50 items
-    setIsOpen(true); // Abrir el drawer al guardar para dar feedback visual
-  }, []);
+    
+    // Usar el límite definido en settings (settings.historyLimit)
+    setHistory(prev => [newItem, ...prev].slice(0, settings.historyLimit));
+  }, [settings.historyLimit]);
 
   const clearHistory = useCallback(() => {
     setHistory([]);
