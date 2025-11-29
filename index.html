@@ -47,7 +47,8 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js')
+        // Usar ruta absoluta para evitar problemas con subdirectorios
+        navigator.serviceWorker.register('/service-worker.js')
           .then(reg => console.log('SW registered'))
           .catch(err => console.log('SW registration failed:', err));
       });
