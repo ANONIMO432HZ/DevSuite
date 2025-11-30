@@ -67,7 +67,7 @@ const TextareaGroup: React.FC<TextareaGroupProps> = ({
           rows={rows}
           disabled={disabled}
           readOnly={readOnly}
-          className={`w-full bg-slate-100 dark:bg-slate-900 border text-slate-900 dark:text-slate-200 rounded-md py-3 pl-4 pr-10 focus:ring-2 transition font-mono text-lg resize-y ${borderColor} ${ringColor} disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:cursor-not-allowed read-only:bg-slate-200 dark:read-only:bg-slate-800 read-only:cursor-default`}
+          className={`w-full bg-slate-100 dark:bg-slate-900 border text-slate-900 dark:text-slate-200 rounded-md py-3 pl-4 pr-10 focus:ring-2 transition font-mono text-base sm:text-lg resize-y ${borderColor} ${ringColor} disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:cursor-not-allowed read-only:bg-slate-200 dark:read-only:bg-slate-800 read-only:cursor-default`}
         />
         <div className="absolute top-2 right-2 flex flex-col gap-1 bg-slate-100/80 dark:bg-slate-900/80 rounded backdrop-blur-sm p-0.5">
             {!disabled && !readOnly && value && (

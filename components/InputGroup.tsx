@@ -7,9 +7,37 @@ const InputGroup: React.FC<InputGroupProps> = ({ id, label, value, onChange, pla
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleCopy = useCallback(() => { /* ... */ }, [value]);
-  const handlePaste = useCallback(async () => { /* ... */ }, [onChange, value]);
-  const handleClear = useCallback(() => { /* ... */ }, [onChange]);
+  const handleCopy = useCallback(() => {
+    if (!value) return;
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [value]);
+
+  const handlePaste = useCallback(async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        // Simular evento de cambio para inputs controlados
+        const event = {
+          target: { value: text },
+          currentTarget: { value: text }
+        } as React.ChangeEvent<HTMLInputElement>;
+        onChange(event);
+      }
+    } catch (err) {
+      console.error('Failed to read clipboard', err);
+    }
+  }, [onChange]);
+
+  const handleClear = useCallback(() => {
+    const event = {
+      target: { value: '' },
+      currentTarget: { value: '' }
+    } as React.ChangeEvent<HTMLInputElement>;
+    onChange(event);
+  }, [onChange]);
 
   const borderColor = error ? 'border-red-500 dark:border-red-400' : 'border-slate-300 dark:border-slate-700 focus:border-accent';
   const ringColor = error ? 'focus:ring-red-500' : 'focus:ring-accent';
@@ -28,7 +56,7 @@ const InputGroup: React.FC<InputGroupProps> = ({ id, label, value, onChange, pla
           onChange={onChange}
           placeholder={placeholder}
           readOnly={readOnly}
-          className={`w-full bg-slate-100 dark:bg-slate-900 border text-slate-900 dark:text-slate-200 rounded-md py-3 pl-4 pr-24 focus:ring-2 transition font-mono text-lg read-only:bg-slate-200 dark:read-only:bg-slate-800 read-only:cursor-default ${borderColor} ${ringColor}`}
+          className={`w-full bg-slate-100 dark:bg-slate-900 border text-slate-900 dark:text-slate-200 rounded-md py-3 pl-4 pr-24 focus:ring-2 transition font-mono text-base sm:text-lg read-only:bg-slate-200 dark:read-only:bg-slate-800 read-only:cursor-default ${borderColor} ${ringColor}`}
           autoComplete="off"
         />
         <div className="absolute inset-y-0 right-0 flex items-center px-1 bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur-[1px] rounded-r-md">
