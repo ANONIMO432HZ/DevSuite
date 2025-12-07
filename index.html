@@ -1,62 +1,88 @@
 <!DOCTYPE html>
-<html lang="es" class="">
+<html lang="es" dir="ltr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DevSuite: Herramientas Digitales Integrales</title>
   
-  <!-- SEO & Meta Tags -->
-  <meta name="description" content="Una suite completa de utilidades para desarrolladores y creativos. Conversión universal, criptografía, diseño, diagramas IA y manipulación de datos en una PWA offline.">
-  <meta name="keywords" content="dev tools, unit converter, json formatter, base64, hash generator, uuid, color palette, mermaid editor, ai assistant, pwa, offline">
+  <!-- Primary Meta Tags -->
+  <title>DevSuite: Developer Tools & Utilities | Kit de Desarrollo All-in-One</title>
+  <meta name="title" content="DevSuite: Developer Tools & Utilities | Kit de Desarrollo All-in-One">
+  <meta name="description" content="The ultimate offline toolkit for developers: JSON Converter, JWT/Base64, Mermaid Diagrams, AI Assistant & Crypto. La suite definitiva para desarrolladores: Conversores, Criptografía, Diseño y más. Free & Open Source.">
+  <meta name="keywords" content="dev tools, developer suite, web tools, unit converter, json formatter, yaml converter, base64 decoder, hash generator, md5, sha256, uuid generator, color palette, gradient generator, mermaid editor, flowchart maker, ai assistant, gemini ai, network tools, subnet calculator, offline pwa, herramientas desarrollo, conversor unidades, criptografía, generador contraseñas, editor diagramas, programador, react tools">
   <meta name="author" content="DevSuite Team">
+  <meta name="application-name" content="DevSuite">
   <meta name="theme-color" content="#0f172a">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://dev-suite.vercel.app/">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://dev-suite.vercel.app/">
-  <meta property="og:title" content="DevSuite: Herramientas Digitales Integrales">
-  <meta property="og:description" content="Conversión universal, criptografía, diseño y diagramas IA en una PWA offline.">
-  <meta property="og:image" content="/icons/icon-512.png">
+  <meta property="og:title" content="DevSuite: The Swiss Army Knife for Developers">
+  <meta property="og:description" content="All-in-one offline development suite. Convert, Encode, Encrypt, Design, and Visualize. Powered by AI.">
+  <meta property="og:image" content="https://dev-suite.vercel.app/icons/icon-512.png">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:locale:alternate" content="en_US">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://dev-suite.vercel.app/">
   <meta property="twitter:title" content="DevSuite: Herramientas Digitales Integrales">
-  <meta property="twitter:description" content="Conversión universal, criptografía, diseño y diagramas IA en una PWA offline.">
-  <meta property="twitter:image" content="/icons/icon-512.png">
+  <meta property="twitter:description" content="JSON, Base64, UUID, Crypto, Colors, AI & Diagrams. The only dev toolkit you need.">
+  <meta property="twitter:image" content="https://dev-suite.vercel.app/icons/icon-512.png">
 
+  <!-- PWA & Icons -->
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" type="image/png" href="/icons/icon-192.png">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   
-  <!-- Estilos Compilados: Necesario para Offline Mode y Performance en Producción -->
+  <!-- Structured Data (JSON-LD) for SEO Rich Snippets -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "DevSuite",
+      "url": "https://dev-suite.vercel.app/",
+      "image": "https://dev-suite.vercel.app/icons/icon-512.png",
+      "description": "Una suite completa de utilidades para desarrolladores y creativos. Incluye conversión universal, manipulación de datos (JSON/YAML), criptografía, herramientas de color y diagramas con IA.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": "Unit Converter, JSON Formatter, Base64 Encoder, Hash Generator, UUID Generator, Color Palette, Mermaid Diagram Editor, AI Assistant, Network Tools",
+      "author": {
+        "@type": "Person",
+        "name": "ANONIMO432HZ"
+      },
+      "browserRequirements": "Requires JavaScript. Works offline."
+    }
+  </script>
+
+  <!-- Estilos Compilados -->
   <link href="/styles.css" rel="stylesheet">
 
   <!-- Script inline para evitar Flash of Incorrect Theme (FOUC) -->
   <script>
     (function() {
-      // Intentar recuperar el tema o usar oscuro por defecto
       var storedTheme = localStorage.getItem('theme_mode');
       var storedAccent = localStorage.getItem('theme_custom_color');
       
-      // Aplicar clase dark por defecto si no es explícitamente 'light'
       if (storedTheme === 'light') {
         document.documentElement.classList.remove('dark');
       } else {
         document.documentElement.classList.add('dark');
       }
 
-      // Intentar restaurar color de acento personalizado si existe para evitar salto visual
       if (storedAccent) {
-         // Función simple para convertir HEX a RGB
          var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(storedAccent);
          if (result) {
             var r = parseInt(result[1], 16);
             var g = parseInt(result[2], 16);
             var b = parseInt(result[3], 16);
-            // Variable para Tailwind (solo números)
             document.documentElement.style.setProperty('--color-accent-rgb', r + ' ' + g + ' ' + b);
-            // Variable para CSS estándar (color válido)
             document.documentElement.style.setProperty('--color-accent', 'rgb(' + r + ',' + g + ',' + b + ')');
          }
       }
@@ -85,7 +111,6 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        // Usar ruta absoluta para evitar problemas con subdirectorios
         navigator.serviceWorker.register('/service-worker.js')
           .then(reg => console.log('SW registered'))
           .catch(err => console.log('SW registration failed:', err));

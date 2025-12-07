@@ -154,7 +154,18 @@ const DiagramEditor: React.FC = () => {
     }, []);
 
     const handleDownload = useCallback(() => {
-        mermaidRef.current?.getSvg();
+        const svgContent = mermaidRef.current?.getSvg();
+        if (svgContent) {
+            const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `diagram-${Date.now()}.svg`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
     }, []);
 
     const handleImprove = () => handleSendAi(`Mejora y optimiza el siguiente diagrama Mermaid, añadiendo más detalles o un mejor estilo:\n\n${diagramCode}`);

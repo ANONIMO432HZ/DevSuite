@@ -1,12 +1,13 @@
 {
-  "name": "DevSuite",
+  "name": "DevSuite: Developer Tools",
   "short_name": "DevSuite",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
   "orientation": "portrait-primary",
-  "description": "Suite integral de herramientas para desarrolladores: Conversores, JSON, Hash, Color y más.",
+  "description": "The ultimate offline toolkit for developers. JSON, Base64, UUID, Crypto, Color Palette, AI Assistant & Mermaid Diagrams.",
+  "categories": ["productivity", "utilities", "developer tools"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
