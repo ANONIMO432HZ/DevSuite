@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { useLanguage } from '../contexts/LanguageContext';
@@ -16,7 +15,7 @@ const ZoomInIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xm
 const ZoomOutIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM7.5 10.5h6" /></svg>);
 const ResetZoomIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>);
 const WrenchScrewdriverIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M15.932 4.134a.75.75 0 0 1 .955 1.22l-4.14 3.22a.75.75 0 0 1-1.026-.062L3.83 2.121a1.5 1.5 0 0 0-2.121 0l-.707.707a1.5 1.5 0 0 0 0 2.121l5.383 5.383a.75.75 0 0 1-.223 1.256l-3.22 4.14a.75.75 0 0 1-1.22-.955l4.14-3.22a.75.75 0 0 1 1.026.062l7.89 6.393a1.5 1.5 0 0 0 2.121 0l.707-.707a1.5 1.5 0 0 0 0-2.121L14.71 10.043a.75.75 0 0 1 .223-1.256l3.22-4.14a.75.75 0 0 1-.22-1.22Z" /><path d="M11.625 18.75a1.125 1.125 0 1 0 0-2.25 1.125 1.125 0 0 0 0 2.25Z" /><path d="m15.54 13.62-5.012 5.012a1.125 1.125 0 1 0 1.59 1.59l5.013-5.012a2.625 2.625 0 1 0-1.59-1.59Z" /></svg>);
-const ChatBubbleLeftRightIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M4.804 21.644a.75.75 0 0 0 .996-.996l-.785-1.785A7.5 7.5 0 0 1 2.25 12c0-4.142 3.358-7.5 7.5-7.5s7.5 3.358 7.5 7.5c0 1.96-.757 3.75-2 5.122l-1.632 1.632a.75.75 0 0 0 1.06 1.06l1.633-1.632A9 9 0 1 0 9.75 3a9 9 0 0 0-7.23 14.44l2.284 4.204Z" clipRule="evenodd" /></svg>);
+const ChatBubbleLeftRightIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M4.804 21.644a.75.75 0 0 0 .996-.996l-.785-1.785A7.5 7.5 0 0 1 2.25 12c0-4.142 3.358-7.5 7.5-7.5s7.5 3.358 7.5 7.5c0 1.96-.757 3.75-2 5.122l-1.632 1.632a.75.75 0 0 0 1.06 1.06l1.633-1.632A9 9 0 1 0 9.75 3a9 9 0 0 0-7.23 14.44l2.284 4.24Z" clipRule="evenodd" /></svg>);
 const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>);
 const ChevronDownIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>);
 const CopyIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>);
@@ -154,17 +153,24 @@ const DiagramEditor: React.FC = () => {
     }, []);
 
     const handleDownload = useCallback(() => {
+        // Implementación corregida para descargar el SVG real
         const svgContent = mermaidRef.current?.getSvg();
         if (svgContent) {
-            const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `diagram-${Date.now()}.svg`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            try {
+                const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `diagram-${Date.now()}.svg`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                console.error("Error creating download blob", e);
+            }
+        } else {
+            console.warn("SVG content not found from Mermaid ref");
         }
     }, []);
 

@@ -8,8 +8,14 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { HistoryProvider } from './contexts/HistoryContext';
 import { ApiKeyProvider } from './contexts/ApiKeyContext';
 
+// TypeScript declaration to fix red lines in editor
+declare global {
+  interface Window {
+    process: any;
+  }
+}
+
 // Polyfill for process.env if it doesn't exist (prevents crash in browser)
-// Accedemos a través de 'window' casteado a 'any' para evitar errores de TypeScript (TS2304)
 const win = window as any;
 if (typeof win.process === 'undefined') {
   win.process = { env: {} };

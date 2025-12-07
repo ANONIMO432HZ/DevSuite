@@ -1,4 +1,3 @@
-
 import { Language } from './types';
 
 export const translations: Record<Language, Record<string, string>> = {
@@ -202,6 +201,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'net.ip.region': 'Región',
     'net.ip.country': 'País',
     'net.ip.org': 'Proveedor / Org',
+    'net.map.location': 'Ubicación Aproximada',
+    'net.map.google': 'Ver en Google Maps',
     'net.beta.badge': 'MODO BETA',
 
     // BMI Calculator
@@ -596,6 +597,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'net.ip.region': 'Region',
     'net.ip.country': 'Country',
     'net.ip.org': 'ISP / Org',
+    'net.map.location': 'Approximate Location',
+    'net.map.google': 'View on Google Maps',
     'net.beta.badge': 'BETA MODE',
 
     // AI Assistant

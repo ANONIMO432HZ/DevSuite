@@ -14,6 +14,9 @@ const ChipIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmln
 const PulseIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>);
 const UserIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>);
 const PortIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>);
+const CopyIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>);
+const MapPinIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>);
+const ExternalLinkIcon: React.FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>);
 
 const NetworkTools: React.FC = () => {
   const { t } = useLanguage();
@@ -21,7 +24,12 @@ const NetworkTools: React.FC = () => {
   const [activeTool, setActiveTool] = useState<ToolMode>('myip');
 
   // --- MY IP State ---
-  const [ipData, setIpData] = useState<any>(null);
+  const [ipState, setIpState] = useState<{
+      v4: string | null;
+      v6: string | null;
+      details: any | null;
+      error: string | null;
+  } | null>(null);
   const [loadingIp, setLoadingIp] = useState(false);
 
   // --- PING State ---
@@ -49,18 +57,109 @@ const NetworkTools: React.FC = () => {
 
   // --- Fetch My IP ---
   useEffect(() => {
-    if (activeTool === 'myip' && !ipData) {
+    if (activeTool === 'myip' && !ipState) {
       setLoadingIp(true);
-      // Usar api.ipify.org para una respuesta robusta de solo IP
-      fetch('https://api.ipify.org?format=json')
-        .then(res => res.json())
-        .then(data => {
-            setIpData(data);
-        })
-        .catch((err) => setIpData({ error: 'Servicio no disponible (api.ipify.org)' }))
-        .finally(() => setLoadingIp(false));
+      
+      const fetchData = async () => {
+          const newState = { v4: null, v6: null, details: null, error: null };
+          
+          try {
+              // 1. Detectar IPv4 e IPv6 en paralelo (Dual Stack)
+              const [v4Res, v6Res] = await Promise.allSettled([
+                  fetch('https://api.ipify.org?format=json').then(r => r.json()),
+                  fetch('https://api6.ipify.org?format=json').then(r => r.json())
+              ]);
+
+              if (v4Res.status === 'fulfilled') newState.v4 = v4Res.value.ip;
+              if (v6Res.status === 'fulfilled') newState.v6 = v6Res.value.ip;
+
+              // 2. Estrategia de Geolocalización en Cascada (3 Niveles de Respaldo)
+              let geoData = null;
+
+              // Intento A: ipapi.co (Muy detallado, pero estricto con CORS/RateLimit)
+              try {
+                  const res = await fetch('https://ipapi.co/json/');
+                  if (res.ok) {
+                      geoData = await res.json();
+                  } else {
+                      throw new Error('ipapi.co blocked');
+                  }
+              } catch (errA) {
+                  console.warn("Primary geo failed, trying backup 1 (ipwho.is)...");
+                  
+                  // Intento B: ipwho.is (Menos restricciones, buena data)
+                  try {
+                      const res = await fetch('https://ipwho.is/');
+                      if (res.ok) {
+                          const data = await res.json();
+                          if (data.success) {
+                              geoData = {
+                                  city: data.city,
+                                  region: data.region,
+                                  country_name: data.country,
+                                  // Mapeo seguro usando los datos que proporcionaste
+                                  org: data.connection?.org || data.connection?.isp || data.org,
+                                  latitude: data.latitude,
+                                  longitude: data.longitude
+                              };
+                          } else {
+                              throw new Error('ipwho.is success=false');
+                          }
+                      } else {
+                          throw new Error('ipwho.is network error');
+                      }
+                  } catch (errB) {
+                      console.warn("Backup 1 failed, trying backup 2 (freeipapi)...");
+
+                      // Intento C: freeipapi.com (Último recurso, muy permisivo)
+                      try {
+                          const res = await fetch('https://freeipapi.com/api/json');
+                          if (res.ok) {
+                              const data = await res.json();
+                              geoData = {
+                                  city: data.cityName,
+                                  region: data.regionName,
+                                  country_name: data.countryName,
+                                  org: 'Unknown (FreeIP)',
+                                  latitude: data.latitude,
+                                  longitude: data.longitude
+                              };
+                          }
+                      } catch (errC) {
+                          console.error("All geo services failed.");
+                      }
+                  }
+              }
+
+              newState.details = geoData;
+
+              if (!newState.v4 && !newState.v6) {
+                  newState.error = "No se pudo detectar ninguna conexión.";
+              }
+
+              setIpState(newState);
+          } catch (e) {
+              setIpState({ v4: null, v6: null, details: null, error: 'Error de conexión general.' });
+          } finally {
+              setLoadingIp(false);
+          }
+      };
+
+      fetchData();
     }
-  }, [activeTool, ipData]);
+  }, [activeTool, ipState]);
+
+  const copyToClipboard = (text: string) => {
+      if (text) navigator.clipboard.writeText(text);
+  };
+
+  // --- Helper to get OSM Embed URL ---
+  const getOsmEmbedUrl = (lat: number, lon: number) => {
+      // Calculate a small bounding box for the embed
+      const delta = 0.05;
+      const bbox = `${lon - delta},${lat - delta},${lon + delta},${lat + delta}`;
+      return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
+  };
 
   // --- Ping / HTTP Head Logic ---
   const handlePing = async () => {
@@ -242,17 +341,82 @@ const NetworkTools: React.FC = () => {
                     </h3>
                     {loadingIp ? (
                         <div className="text-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto"></div></div>
-                    ) : ipData ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="col-span-1 sm:col-span-2 bg-slate-100 dark:bg-slate-900 p-6 rounded-xl text-center border border-slate-200 dark:border-slate-700">
-                                <p className="text-xs uppercase text-slate-500 font-bold mb-2">{t('net.ip.public')}</p>
-                                <p className="text-3xl font-mono font-bold text-slate-800 dark:text-accent select-all">{ipData.ip || 'Error'}</p>
-                                {ipData.error && <p className="text-red-500 text-sm mt-2 font-bold">{ipData.error}</p>}
+                    ) : ipState ? (
+                        <div className="grid grid-cols-1 gap-6">
+                            
+                            {/* Panel de IPs */}
+                            <div className="bg-slate-100 dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
+                                <div>
+                                    <div className="flex justify-between items-end mb-1">
+                                        <p className="text-xs uppercase text-slate-500 font-bold">IPv4 Pública</p>
+                                        {ipState.v4 && <button onClick={() => copyToClipboard(ipState.v4!)} className="text-accent hover:text-white hover:bg-accent p-1 rounded transition-colors" title="Copiar"><CopyIcon className="w-3.5 h-3.5"/></button>}
+                                    </div>
+                                    <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                                        <p className={`text-xl sm:text-2xl font-mono font-bold select-all ${ipState.v4 ? 'text-slate-800 dark:text-slate-100' : 'text-slate-400 dark:text-slate-600 italic'}`}>
+                                            {ipState.v4 || 'No detectada'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-slate-200 dark:border-slate-800 pt-4">
+                                    <div className="flex justify-between items-end mb-1">
+                                        <p className="text-xs uppercase text-slate-500 font-bold">IPv6 Pública</p>
+                                        {ipState.v6 && <button onClick={() => copyToClipboard(ipState.v6!)} className="text-accent hover:text-white hover:bg-accent p-1 rounded transition-colors" title="Copiar"><CopyIcon className="w-3.5 h-3.5"/></button>}
+                                    </div>
+                                    <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                                        <p className={`text-sm sm:text-lg font-mono font-bold select-all break-all ${ipState.v6 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-600 italic'}`}>
+                                            {ipState.v6 || 'No detectada'}
+                                        </p>
+                                    </div>
+                                </div>
+                                {ipState.error && <p className="text-red-500 text-sm font-bold text-center mt-2">{ipState.error}</p>}
                             </div>
-                            <InputGroup id="ip-city" label={t('net.ip.city')} value={ipData.city || '-'} onChange={()=>{}} placeholder="" readOnly />
-                            <InputGroup id="ip-region" label={t('net.ip.region')} value={ipData.region || '-'} onChange={()=>{}} placeholder="" readOnly />
-                            <InputGroup id="ip-country" label={t('net.ip.country')} value={ipData.country || ipData.country_name || '-'} onChange={()=>{}} placeholder="" readOnly />
-                            <InputGroup id="ip-org" label={t('net.ip.org')} value={ipData.connection?.isp || ipData.org || '-'} onChange={()=>{}} placeholder="" readOnly />
+
+                            {/* Panel de Geolocalización */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <InputGroup id="ip-city" label={t('net.ip.city')} value={ipState.details?.city || '-'} onChange={()=>{}} placeholder="" readOnly />
+                                <InputGroup id="ip-region" label={t('net.ip.region')} value={ipState.details?.region || '-'} onChange={()=>{}} placeholder="" readOnly />
+                                <InputGroup id="ip-country" label={t('net.ip.country')} value={ipState.details?.country_name || '-'} onChange={()=>{}} placeholder="" readOnly />
+                                <InputGroup id="ip-org" label={t('net.ip.org')} value={ipState.details?.org || '-'} onChange={()=>{}} placeholder="" readOnly />
+                            </div>
+
+                            {/* Mapa (OpenStreetMap Embed) */}
+                            {ipState.details?.latitude && ipState.details?.longitude && (
+                                <div className="bg-slate-100 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <div className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                                            <MapPinIcon className="w-4 h-4 text-accent" />
+                                            {t('net.map.location')}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-mono text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">
+                                                {ipState.details.latitude}, {ipState.details.longitude}
+                                            </span>
+                                            <a 
+                                                href={`https://www.google.com/maps/search/?api=1&query=${ipState.details.latitude},${ipState.details.longitude}`} 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                className="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                                            >
+                                                {t('net.map.google')} <ExternalLinkIcon className="w-3 h-3" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div className="relative w-full h-64 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-200 dark:bg-slate-800">
+                                        <iframe
+                                            width="100%"
+                                            height="100%"
+                                            frameBorder="0"
+                                            scrolling="no"
+                                            marginHeight={0}
+                                            marginWidth={0}
+                                            src={getOsmEmbedUrl(ipState.details.latitude, ipState.details.longitude)}
+                                            className="absolute inset-0"
+                                            title="IP Location Map"
+                                        ></iframe>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ) : <p className="text-red-500">Failed to load IP data.</p>}
                 </div>
