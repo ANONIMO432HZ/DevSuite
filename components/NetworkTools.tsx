@@ -55,6 +55,98 @@ const NetworkTools: React.FC = () => {
   const [portResults, setPortResults] = useState<Record<number, PortStatus>>({});
   const [isScanning, setIsScanning] = useState(false);
 
+  // --- Helper: Get Geo Data Sequentially ---
+  const getGeoData = async () => {
+      // Definir estrategias de proveedores en orden de preferencia
+      const strategies = [
+          // 1. ipapi.co (Alta precisión)
+          async () => {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 3000);
+              try {
+                const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+                if (!res.ok) throw new Error('Status ' + res.status);
+                const data = await res.json();
+                if (data.error) throw new Error(data.reason);
+                return {
+                    city: data.city,
+                    region: data.region,
+                    country_name: data.country_name,
+                    org: data.org,
+                    latitude: data.latitude,
+                    longitude: data.longitude
+                };
+              } finally { clearTimeout(timeoutId); }
+          },
+          // 2. ipwho.is (Buena alternativa, requiere chequeo de success)
+          async () => {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 3000);
+              try {
+                const res = await fetch('https://ipwho.is/', { signal: controller.signal });
+                if (!res.ok) throw new Error('Status ' + res.status);
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+                return {
+                    city: data.city,
+                    region: data.region,
+                    country_name: data.country,
+                    org: data.connection?.org || data.connection?.isp,
+                    latitude: data.latitude,
+                    longitude: data.longitude
+                };
+              } finally { clearTimeout(timeoutId); }
+          },
+          // 3. freeipapi.com (Respaldo simple)
+          async () => {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 3000);
+              try {
+                const res = await fetch('https://freeipapi.com/api/json', { signal: controller.signal });
+                if (!res.ok) throw new Error('Status ' + res.status);
+                const data = await res.json();
+                return {
+                    city: data.cityName,
+                    region: data.regionName,
+                    country_name: data.countryName,
+                    org: '',
+                    latitude: data.latitude,
+                    longitude: data.longitude
+                };
+              } finally { clearTimeout(timeoutId); }
+          },
+          // 4. db-ip.com (Último recurso, suele funcionar pero a veces sin lat/long en free tier)
+          async () => {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 3000);
+              try {
+                const res = await fetch('https://api.db-ip.com/v2/free/self', { signal: controller.signal });
+                if (!res.ok) throw new Error('Status ' + res.status);
+                const data = await res.json();
+                return {
+                    city: data.city,
+                    region: data.stateProv,
+                    country_name: data.countryName,
+                    org: '',
+                    latitude: null,
+                    longitude: null
+                };
+              } finally { clearTimeout(timeoutId); }
+          }
+      ];
+
+      // Ejecutar estrategias secuencialmente
+      for (const strategy of strategies) {
+          try {
+              const result = await strategy();
+              if (result) return result;
+          } catch (e) {
+              console.warn("Geo strategy failed, trying next...", e);
+          }
+      }
+      return null; // Si todo falla
+  };
+
   // --- Fetch My IP ---
   useEffect(() => {
     if (activeTool === 'myip' && !ipState) {
@@ -73,65 +165,14 @@ const NetworkTools: React.FC = () => {
               if (v4Res.status === 'fulfilled') newState.v4 = v4Res.value.ip;
               if (v6Res.status === 'fulfilled') newState.v6 = v6Res.value.ip;
 
-              // 2. Estrategia de Geolocalización en Cascada (3 Niveles de Respaldo)
-              let geoData = null;
-
-              // Intento A: ipapi.co (Muy detallado, pero estricto con CORS/RateLimit)
+              // 2. Obtener geolocalización (Aislado para no romper si falla)
               try {
-                  const res = await fetch('https://ipapi.co/json/');
-                  if (res.ok) {
-                      geoData = await res.json();
-                  } else {
-                      throw new Error('ipapi.co blocked');
-                  }
-              } catch (errA) {
-                  console.warn("Primary geo failed, trying backup 1 (ipwho.is)...");
-                  
-                  // Intento B: ipwho.is (Menos restricciones, buena data)
-                  try {
-                      const res = await fetch('https://ipwho.is/');
-                      if (res.ok) {
-                          const data = await res.json();
-                          if (data.success) {
-                              geoData = {
-                                  city: data.city,
-                                  region: data.region,
-                                  country_name: data.country,
-                                  // Mapeo seguro usando los datos que proporcionaste
-                                  org: data.connection?.org || data.connection?.isp || data.org,
-                                  latitude: data.latitude,
-                                  longitude: data.longitude
-                              };
-                          } else {
-                              throw new Error('ipwho.is success=false');
-                          }
-                      } else {
-                          throw new Error('ipwho.is network error');
-                      }
-                  } catch (errB) {
-                      console.warn("Backup 1 failed, trying backup 2 (freeipapi)...");
-
-                      // Intento C: freeipapi.com (Último recurso, muy permisivo)
-                      try {
-                          const res = await fetch('https://freeipapi.com/api/json');
-                          if (res.ok) {
-                              const data = await res.json();
-                              geoData = {
-                                  city: data.cityName,
-                                  region: data.regionName,
-                                  country_name: data.countryName,
-                                  org: 'Unknown (FreeIP)',
-                                  latitude: data.latitude,
-                                  longitude: data.longitude
-                              };
-                          }
-                      } catch (errC) {
-                          console.error("All geo services failed.");
-                      }
-                  }
+                  const geoData = await getGeoData();
+                  newState.details = geoData;
+              } catch (geoError) {
+                  console.error("Critical: All geo services failed", geoError);
+                  // No seteamos error global, para que al menos se vean las IPs
               }
-
-              newState.details = geoData;
 
               if (!newState.v4 && !newState.v6) {
                   newState.error = "No se pudo detectar ninguna conexión.";

@@ -37,29 +37,6 @@
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   
   <!-- Structured Data (JSON-LD) for SEO Rich Snippets -->
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "DevSuite",
-      "url": "https://dev-suite.vercel.app/",
-      "image": "https://dev-suite.vercel.app/icons/icon-512.png",
-      "description": "Una suite completa de utilidades para desarrolladores y creativos. Incluye conversión universal, manipulación de datos (JSON/YAML), criptografía, herramientas de color y diagramas con IA.",
-      "applicationCategory": "DeveloperApplication",
-      "operatingSystem": "Any",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "featureList": "Unit Converter, JSON Formatter, Base64 Encoder, Hash Generator, UUID Generator, Color Palette, Mermaid Diagram Editor, AI Assistant, Network Tools",
-      "author": {
-        "@type": "Person",
-        "name": "ANONIMO432HZ"
-      },
-      "browserRequirements": "Requires JavaScript. Works offline."
-    }
-  </script>
 
   <!-- Estilos Compilados -->
   <link href="/styles.css" rel="stylesheet">
@@ -88,6 +65,22 @@
       }
     })();
   </script>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "js-yaml": "https://aistudiocdn.com/js-yaml@^4.1.1",
+    "smol-toml": "https://aistudiocdn.com/smol-toml@^1.5.2",
+    "crypto-js": "https://aistudiocdn.com/crypto-js@^4.2.0",
+    "@noble/hashes/": "https://aistudiocdn.com/@noble/hashes@^2.0.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
+    "mermaid": "https://aistudiocdn.com/mermaid@^11.12.2"
+  }
+}
+</script>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300">
   <div id="root"></div>
